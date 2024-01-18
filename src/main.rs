@@ -1,20 +1,32 @@
 #![no_std] // Rust の標準ライブラリにリンクしない
 #![no_main] // 全ての Rust レベルのエントリポイントを無効にする
+#![feature(custom_test_frameworks)]
+#![test_runner(rust_os::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 
-mod vga_buffer;
 use core::panic::PanicInfo;
+use rust_os::println;
+
+#[no_mangle] // この関数の名前修飾をしない
+pub extern "C" fn _start() -> ! {
+    println!("Hello World{}", "!");
+
+    #[cfg(test)]
+    test_main();
+
+    loop {}
+}
 
 /// この関数はパニック時に呼ばれる
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
     loop {}
 }
 
-#[no_mangle] // この関数の名前修飾をしない
-pub extern "C" fn _start() -> ! {
-    println!("Hello World");
-    println!("I'm Yuichi!");
-
-    loop {}
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    rust_os::test_panic_handler(info)
 }
