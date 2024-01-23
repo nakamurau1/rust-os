@@ -4,22 +4,28 @@
 #![test_runner(rust_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use rust_os::println;
 
-#[no_mangle] // この関数の名前修飾をしない
-pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
+entry_point!(kernel_main);
 
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    println!("Hello World{}", "!");
     rust_os::init();
 
-    use x86_64::registers::control::Cr3;
+    // let address = [
+    //     0xb8000,
+    //     0x201008,
+    //     0x0100_0020_1a10,
+    //     boot_info.physical_memory_offset,
+    // ];
 
-    let (level_4_page_table, _) = Cr3::read();
-    println!(
-        "Level 4 page table at: {:?}",
-        level_4_page_table.start_address()
-    );
+    // for &address in &address {
+    //     let virt = VirtAddr::new(address);
+    //     let phys = mapper.translate_addr(virt);
+    //     println!("{:?} -> {:?}", virt, phys);
+    // }
 
     #[cfg(test)]
     test_main();
